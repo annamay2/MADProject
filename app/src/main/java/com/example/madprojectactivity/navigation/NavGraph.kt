@@ -48,7 +48,8 @@ fun AppNavGraph(
 
         composable("uploadReceipt") {
             UploadReceiptScreen(
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onDone = { navController.popBackStack() }
             )
         }
     }
