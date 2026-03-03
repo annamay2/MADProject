@@ -1,14 +1,14 @@
 package com.example.madprojectactivity.screens.login
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun LoginScreen(
@@ -16,12 +16,28 @@ fun LoginScreen(
     vm: LoginViewModel = viewModel(),
     onLoginSuccess: () -> Unit = {}
 ) {
+    android.util.Log.e("LOGIN_SCREEN", "LoginScreen composable is running")
+
     val state by vm.uiState.collectAsState()
 
-    // One-time reaction to a state change (navigation)
+    // Local UI toggle: login vs signup
+    var isSignUpMode by rememberSaveable { mutableStateOf(false) }
+
+    // Navigate once logged in
     LaunchedEffect(state.isLoggedIn) {
-        if (state.isLoggedIn) onLoginSuccess()
+        android.util.Log.d("LoginScreen", "isLoggedIn changed -> ${state.isLoggedIn}")
+        if (state.isLoggedIn) {
+            Log.e("LOGIN_SCREEN", "Login success -> navigating to Home")
+            onLoginSuccess()
+
+        }
     }
+
+    val title = if (isSignUpMode) "Create account" else "Login"
+    val primaryButtonText = if (isSignUpMode) "Sign up" else "Login"
+    val loadingText = if (isSignUpMode) "Creating account…" else "Logging in…"
+    val toggleText = if (isSignUpMode) "Already have an account? Log in"
+    else "No account yet? Sign up"
 
     Column(
         modifier = modifier
@@ -30,7 +46,7 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Login",
+            text = title,
             style = MaterialTheme.typography.headlineMedium
         )
 
@@ -66,7 +82,7 @@ fun LoginScreen(
         }
 
         Button(
-            onClick = vm::login,
+            onClick = { if (isSignUpMode) vm.signUp() else vm.login() },
             enabled = !state.isLoading,
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -77,10 +93,23 @@ fun LoginScreen(
                         .size(18.dp)
                         .padding(end = 10.dp)
                 )
-                Text("Logging in…")
+                Text(loadingText)
             } else {
-                Text("Login")
+                Text(primaryButtonText)
             }
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        TextButton(
+            onClick = {
+                isSignUpMode = !isSignUpMode
+                vm.clearError()
+            },
+            enabled = !state.isLoading,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(toggleText)
         }
     }
 }
