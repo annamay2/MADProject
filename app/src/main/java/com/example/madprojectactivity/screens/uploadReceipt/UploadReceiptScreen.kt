@@ -5,9 +5,11 @@ package com.example.madprojectactivity.screens.receipts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -35,6 +37,7 @@ fun UploadReceiptScreen(
     onUploadImage: () -> Unit = {}
 ) {
     val state by vm.uiState.collectAsState()
+    val scrollState = rememberScrollState()
 
     var showDatePicker by remember { mutableStateOf(false) }
     val formatter = remember { DateTimeFormatter.ofPattern("EEE, MMM d") }
@@ -84,169 +87,176 @@ fun UploadReceiptScreen(
         }
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(pageBg)
-            .padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        TopAppBar(
-            title = { Text("New Receipt") },
-            navigationIcon = {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("New Receipt") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
                 }
-            }
-        )
-
-        Spacer(Modifier.height(28.dp))
-
-        // Upload Image pill
-        Surface(
-            color = uploadBg,
-            shape = RoundedCornerShape(14.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(64.dp)
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(padding)
+                .background(pageBg)
+                .verticalScroll(scrollState)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(
+            // Upload Image pill
+            Surface(
+                color = uploadBg,
+                shape = RoundedCornerShape(14.dp),
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 18.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .fillMaxWidth()
+                    .height(64.dp)
             ) {
-                Spacer(Modifier.width(12.dp))
-                Text(
-                    text = "Upload Image",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
-                )
-                Spacer(Modifier.weight(1f))
-                Surface(
-                    shape = CircleShape,
-                    color = Color.Transparent,
+                Row(
                     modifier = Modifier
-                        .size(34.dp)
-                        .border(1.dp, Color(0xFFE0D7F2), CircleShape)
+                        .fillMaxSize()
+                        .padding(horizontal = 18.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = onUploadImage) {
-                        Icon(Icons.Default.Add, contentDescription = "Add", tint = Color(0xFF4D4D4D))
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        text = "Upload Image",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(Modifier.weight(1f))
+                    Surface(
+                        shape = CircleShape,
+                        color = Color.Transparent,
+                        modifier = Modifier
+                            .size(34.dp)
+                            .border(1.dp, Color(0xFFE0D7F2), CircleShape)
+                    ) {
+                        IconButton(onClick = onUploadImage) {
+                            Icon(Icons.Default.Add, contentDescription = "Add", tint = Color(0xFF4D4D4D))
+                        }
                     }
                 }
             }
-        }
 
-        Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(14.dp))
 
-        // Date card
-        Surface(
-            color = cardBg,
-            shape = RoundedCornerShape(10.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(88.dp)
-        ) {
-            Row(
+            // Date card
+            Surface(
+                color = cardBg,
+                shape = RoundedCornerShape(10.dp),
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 18.dp),
+                    .fillMaxWidth()
+                    .height(88.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 18.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Select date",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color(0xFF555555)
+                        )
+                        Spacer(Modifier.height(10.dp))
+                        Text(
+                            text = state.date.format(formatter),
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    IconButton(onClick = { showDatePicker = true }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit date", tint = Color(0xFF4D4D4D))
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            FilledUnderlineField(
+                label = "Amount",
+                value = state.amount,
+                onValueChange = vm::onAmountChange,
+                prefix = "€",
+                keyboardType = KeyboardType.Decimal,
+                cardBg = cardBg,
+                placeholder = "eg. 19.99"
+            )
+
+            Spacer(Modifier.height(14.dp))
+
+            FilledUnderlineField(
+                label = "Store Name",
+                value = state.storeName,
+                onValueChange = vm::onStoreNameChange,
+                keyboardType = KeyboardType.Text,
+                cardBg = cardBg,
+                showClear = true,
+                placeholder = "eg. Aldi"
+            )
+
+            Spacer(Modifier.height(14.dp))
+
+            FilledUnderlineField(
+                label = "Gluten-Free Items",
+                value = state.glutenFreeItems,
+                onValueChange = vm::onGlutenFreeItemsChange,
+                keyboardType = KeyboardType.Text,
+                cardBg = cardBg,
+                showClear = true,
+                placeholder = "eg. Bread, pasta"
+            )
+
+            Spacer(Modifier.height(22.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Select date",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF555555)
-                    )
-                    Spacer(Modifier.height(10.dp))
-                    Text(
-                        text = state.date.format(formatter),
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
+                Text(
+                    text = "Uploaded to Revenue",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.weight(1f))
+                Checkbox(
+                    checked = state.uploadedToRevenue,
+                    onCheckedChange = vm::onUploadedToRevenueChange
+                )
+            }
 
-                IconButton(onClick = { showDatePicker = true }) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit date", tint = Color(0xFF4D4D4D))
+            if (state.errorMessage != null) {
+                Text(state.errorMessage!!, color = MaterialTheme.colorScheme.error)
+            }
+
+            Spacer(Modifier.height(26.dp))
+
+            Button(
+                onClick = { vm.saveReceipt() },
+                enabled = !state.isSaving,
+                shape = RoundedCornerShape(40.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = primaryPurple),
+                contentPadding = PaddingValues(horizontal = 28.dp, vertical = 14.dp)
+            ) {
+                if (state.isSaving) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
+                } else {
+                    Icon(Icons.Default.Check, contentDescription = null)
+                    Spacer(Modifier.width(10.dp))
+                    Text("Done", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 }
             }
-        }
-
-        Spacer(Modifier.height(14.dp))
-
-        FilledUnderlineField(
-            label = "Amount",
-            value = state.amount,
-            onValueChange = vm::onAmountChange,
-            prefix = "€",
-            keyboardType = KeyboardType.Decimal,
-            cardBg = cardBg,
-            placeholder = "eg. 19.99"
-        )
-
-        Spacer(Modifier.height(14.dp))
-
-        FilledUnderlineField(
-            label = "Store Name",
-            value = state.storeName,
-            onValueChange = vm::onStoreNameChange,
-            keyboardType = KeyboardType.Text,
-            cardBg = cardBg,
-            showClear = true,
-            placeholder = "eg. Aldi"
-        )
-
-        Spacer(Modifier.height(14.dp))
-
-        FilledUnderlineField(
-            label = "Gluten-Free Items",
-            value = state.glutenFreeItems,
-            onValueChange = vm::onGlutenFreeItemsChange,
-            keyboardType = KeyboardType.Text,
-            cardBg = cardBg,
-            showClear = true,
-            placeholder = "eg. Bread, pasta"
-        )
-
-        Spacer(Modifier.height(22.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Uploaded to Revenue",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(Modifier.weight(1f))
-            Checkbox(
-                checked = state.uploadedToRevenue,
-                onCheckedChange = vm::onUploadedToRevenueChange
-            )
-        }
-
-        if (state.errorMessage != null) {
-            Text(state.errorMessage!!, color = MaterialTheme.colorScheme.error)
-        }
-
-        Spacer(Modifier.height(26.dp))
-
-        Button(
-            onClick = { vm.saveReceipt() },
-            enabled = !state.isSaving,
-            shape = RoundedCornerShape(40.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = primaryPurple),
-            contentPadding = PaddingValues(horizontal = 28.dp, vertical = 14.dp)
-        ) {
-            if (state.isSaving) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
-            } else {
-                Icon(Icons.Default.Check, contentDescription = null)
-                Spacer(Modifier.width(10.dp))
-                Text("Done", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            }
+            
+            // Add extra space at the bottom to ensure the button is clear of the navbar
+            Spacer(Modifier.height(32.dp))
         }
     }
 }

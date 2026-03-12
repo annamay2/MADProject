@@ -25,6 +25,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     vm: HomeViewModel = viewModel(),
     onUploadReceipt: () -> Unit,
+    onViewReceipt: (String) -> Unit,
     onLoggedOut: () -> Unit
 ) {
     val state by vm.uiState.collectAsState()
@@ -100,7 +101,7 @@ fun HomeScreen(
                     contentPadding = PaddingValues(bottom = 20.dp)
                 ) {
                     items(state.receipts) { receipt ->
-                        ReceiptItem(receipt = receipt, onView = { /* Future navigation */ })
+                        ReceiptItem(receipt = receipt, onView = { onViewReceipt(receipt.id) })
                     }
                 }
             }
