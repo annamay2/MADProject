@@ -19,5 +19,8 @@ interface ReceiptDao {
     suspend fun getUnsyncedReceipts(): List<ReceiptEntity>
 
     @Query("UPDATE receipts SET isSynced = 1 WHERE id = :id")
-    suspend fun markAsSynced(id: Int)
+    suspend fun markAsSynced(id: String)
+
+    @Query("DELETE FROM receipts WHERE id = :id")
+    suspend fun deleteById(id: String)
 }

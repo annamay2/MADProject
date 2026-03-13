@@ -2,11 +2,11 @@ package com.example.madprojectactivity.data.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.time.LocalDate
+import java.util.UUID
 
 @Entity(tableName = "receipts")
 data class ReceiptEntity(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey val id: String = UUID.randomUUID().toString(),
     val userId: String,
     val amount: Double,
     val storeName: String,

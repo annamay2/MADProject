@@ -1,7 +1,9 @@
 package com.example.madprojectactivity.screens.viewReceipt
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.madprojectactivity.data.local.AppDatabase
 import com.example.madprojectactivity.screens.home.Receipt
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -22,9 +24,10 @@ data class ViewReceiptUiState(
     val editUploadedToRevenue: Boolean = false
 )
 
-class ViewReceiptViewModel : ViewModel() {
+class ViewReceiptViewModel(application: Application) : AndroidViewModel(application) {
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
+    private val receiptDao = AppDatabase.getDatabase(application).receiptDao()
 
     private val _uiState = MutableStateFlow(ViewReceiptUiState())
     val uiState: StateFlow<ViewReceiptUiState> = _uiState
@@ -146,12 +149,17 @@ class ViewReceiptViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
+                // 1. Delete from Remote Firestore
                 db.collection("users")
                     .document(uid)
                     .collection("receipts")
                     .document(receiptId)
                     .delete()
                     .await()
+                
+                // 2. Delete from Local Room Database
+                receiptDao.deleteById(receiptId)
+                
                 onDeleted()
             } catch (e: Exception) {
                 _uiState.update { it.copy(errorMessage = e.message) }

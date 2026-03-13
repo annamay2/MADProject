@@ -38,10 +38,12 @@ class SyncWorker(
                     "createdAt" to Timestamp(Date(receipt.createdAt))
                 )
 
+                // Use the local UUID as the Firestore document ID
                 firestore.collection("users")
                     .document(receipt.userId)
                     .collection("receipts")
-                    .add(receiptMap)
+                    .document(receipt.id)
+                    .set(receiptMap)
                     .await()
 
                 dao.markAsSynced(receipt.id)
