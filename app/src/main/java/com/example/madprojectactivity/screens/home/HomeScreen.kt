@@ -16,6 +16,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.madprojectactivity.ui.theme.CardBackgroundLight
+import com.example.madprojectactivity.ui.theme.PrimaryPurple
+import com.example.madprojectactivity.ui.theme.StatusGreen
+import com.example.madprojectactivity.ui.theme.StatusOrange
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -56,23 +60,6 @@ fun HomeScreen(
             Spacer(Modifier.height(8.dp))
 
             Text(
-                text = "Welcome${state.userEmail?.let { ", $it" } ?: ""}",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-
-            // Totals summary widget
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFEFEAF4))
-            ) {
-                Column(Modifier.padding(16.dp).fillMaxWidth()) {
-                    Text("Your totals", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.height(8.dp))
-                    Text("Weekly: €${"%.2f".format(state.receipts.sumOf { it.amount })}")
-                }
-            }
-
-            Text(
                 text = "Recent Receipts",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
@@ -82,7 +69,7 @@ fun HomeScreen(
                 onClick = onUploadReceipt,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6E58B5)),
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryPurple),
                 contentPadding = PaddingValues(vertical = 12.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = null)
@@ -116,7 +103,7 @@ fun ReceiptItem(receipt: Receipt, onView: () -> Unit) {
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F2FA))
+        colors = CardDefaults.cardColors(containerColor = CardBackgroundLight)
     ) {
         Row(
             modifier = Modifier
@@ -129,7 +116,7 @@ fun ReceiptItem(receipt: Receipt, onView: () -> Unit) {
                 modifier = Modifier
                     .size(12.dp)
                     .background(
-                        color = if (receipt.uploadedToRevenue) Color(0xFF4CAF50) else Color(0xFFFF9800),
+                        color = if (receipt.uploadedToRevenue) StatusGreen else StatusOrange,
                         shape = CircleShape
                     )
             )
@@ -146,7 +133,7 @@ fun ReceiptItem(receipt: Receipt, onView: () -> Unit) {
                     text = "€${"%.2f".format(receipt.amount)}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF6E58B5)
+                    color = PrimaryPurple
                 )
                 Spacer(Modifier.width(12.dp))
                 OutlinedButton(

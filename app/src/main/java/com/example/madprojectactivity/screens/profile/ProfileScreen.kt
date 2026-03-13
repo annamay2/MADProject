@@ -9,6 +9,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.madprojectactivity.screens.home.HomeViewModel
+import com.example.madprojectactivity.ui.theme.CardBackground
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,6 +36,23 @@ fun ProfileScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Text(
+                text = "Welcome${state.userEmail?.let { ", $it" } ?: ""}",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+
+            Card(
+                colors = CardDefaults.cardColors(containerColor = CardBackground),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.padding(16.dp).fillMaxWidth()) {
+                    Text("Your totals", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(8.dp))
+                    Text("Weekly: €${"%.2f".format(totalSpent)}")
+                }
+            }
+
             Text(
                 text = "My Statistics",
                 style = MaterialTheme.typography.headlineMedium,
@@ -72,12 +90,6 @@ fun ProfileScreen(
             )
             
             Spacer(Modifier.weight(1f))
-            
-            Text(
-                text = "Logged in as: ${state.userEmail ?: "Unknown"}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.outline
-            )
         }
     }
 }

@@ -19,6 +19,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.madprojectactivity.ui.theme.AccentBackground
+import com.example.madprojectactivity.ui.theme.CardBackgroundLight
+import com.example.madprojectactivity.ui.theme.PrimaryPurple
+import com.example.madprojectactivity.ui.theme.StatusGreen
+import com.example.madprojectactivity.ui.theme.StatusOrange
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -145,7 +150,7 @@ fun ViewReceiptScreen(
                             // Amount Circle
                             Surface(
                                 shape = CircleShape,
-                                color = Color(0xFFEDE4FF),
+                                color = AccentBackground,
                                 modifier = Modifier.size(120.dp)
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
@@ -153,7 +158,7 @@ fun ViewReceiptScreen(
                                         text = "€${"%.2f".format(receipt.amount)}",
                                         style = MaterialTheme.typography.headlineMedium,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF6E58B5)
+                                        color = PrimaryPurple
                                     )
                                 }
                             }
@@ -162,7 +167,7 @@ fun ViewReceiptScreen(
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F2FA))
+                                colors = CardDefaults.cardColors(containerColor = CardBackgroundLight)
                             ) {
                                 Column(
                                     modifier = Modifier.padding(20.dp),
@@ -185,7 +190,7 @@ fun ViewReceiptScreen(
                                                 text = if (receipt.uploadedToRevenue) "Uploaded" else "Pending",
                                                 style = MaterialTheme.typography.bodyLarge,
                                                 fontWeight = FontWeight.Bold,
-                                                color = if (receipt.uploadedToRevenue) Color(0xFF4CAF50) else Color(0xFFFF9800)
+                                                color = if (receipt.uploadedToRevenue) StatusGreen else StatusOrange
                                             )
                                             Spacer(Modifier.width(8.dp))
                                             Switch(
@@ -193,7 +198,7 @@ fun ViewReceiptScreen(
                                                 onCheckedChange = { vm.toggleUploadedToRevenue() },
                                                 colors = SwitchDefaults.colors(
                                                     checkedThumbColor = Color.White,
-                                                    checkedTrackColor = Color(0xFF4CAF50),
+                                                    checkedTrackColor = StatusGreen,
                                                     uncheckedThumbColor = Color.White,
                                                     uncheckedTrackColor = Color.LightGray
                                                 )
