@@ -37,16 +37,14 @@ fun HomeScreen(
         if (!state.isLoggedIn) onLoggedOut()
     }
 
-    Scaffold { padding ->
+    Scaffold(contentWindowInsets = WindowInsets(0)) { padding ->
         Column(
             modifier = modifier
                 .padding(padding)
                 .fillMaxSize()
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Spacer(Modifier.height(12.dp))
-
             val displayName = state.userEmail
                 ?.substringBefore("@")
                 ?.replaceFirstChar { it.uppercase() }

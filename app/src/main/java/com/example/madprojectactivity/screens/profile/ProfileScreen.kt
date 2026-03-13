@@ -38,15 +38,15 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Profile & Metrics") })
-        }
+        },
+        contentWindowInsets = WindowInsets(0)
     ) { padding ->
         Column(
             modifier = modifier
                 .padding(padding)
                 .fillMaxSize()
-                .padding(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = "Welcome, $displayName",
@@ -54,22 +54,28 @@ fun ProfileScreen(
                 fontWeight = FontWeight.Bold
             )
 
+            Spacer(Modifier.height(12.dp))
+
             Card(
                 colors = CardDefaults.cardColors(containerColor = CardBackground),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(Modifier.padding(16.dp).fillMaxWidth()) {
                     Text("Your totals", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(4.dp))
                     Text("Weekly: €${"%.2f".format(totalSpent)}")
                 }
             }
+
+            Spacer(Modifier.height(16.dp))
 
             Text(
                 text = "My Statistics",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
+
+            Spacer(Modifier.height(10.dp))
 
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp)) {
@@ -82,7 +88,9 @@ fun ProfileScreen(
                 }
             }
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Spacer(Modifier.height(10.dp))
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 MetricCard(
                     label = "Receipts",
                     value = receiptCount.toString(),
@@ -94,6 +102,8 @@ fun ProfileScreen(
                     modifier = Modifier.weight(1f)
                 )
             }
+
+            Spacer(Modifier.height(10.dp))
 
             MetricCard(
                 label = "Pending Upload",

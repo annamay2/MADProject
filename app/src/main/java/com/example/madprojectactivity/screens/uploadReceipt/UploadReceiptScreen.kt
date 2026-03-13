@@ -98,7 +98,8 @@ fun UploadReceiptScreen(
                     }
                 }
             )
-        }
+        },
+        contentWindowInsets = WindowInsets(0)
     ) { padding ->
         Column(
             modifier = modifier
@@ -106,7 +107,7 @@ fun UploadReceiptScreen(
                 .padding(padding)
                 .background(Color.White)
                 .verticalScroll(scrollState)
-                .padding(24.dp),
+                .padding(top = 12.dp, start = 20.dp, end = 20.dp, bottom = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Upload Image pill
@@ -216,29 +217,37 @@ fun UploadReceiptScreen(
                 placeholder = "eg. Bread, pasta"
             )
 
-            Spacer(Modifier.height(22.dp))
+            Spacer(Modifier.height(14.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+            Surface(
+                color = CardBackground,
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = "Uploaded to Revenue",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(Modifier.weight(1f))
-                Checkbox(
-                    checked = state.uploadedToRevenue,
-                    onCheckedChange = vm::onUploadedToRevenueChange
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 18.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Uploaded to Revenue",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = SubtitleText,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Checkbox(
+                        checked = state.uploadedToRevenue,
+                        onCheckedChange = vm::onUploadedToRevenueChange
+                    )
+                }
             }
 
             if (state.errorMessage != null) {
                 Text(state.errorMessage!!, color = MaterialTheme.colorScheme.error)
             }
 
-            Spacer(Modifier.height(26.dp))
+            Spacer(Modifier.height(16.dp))
 
             Button(
                 onClick = { vm.saveReceipt() },
