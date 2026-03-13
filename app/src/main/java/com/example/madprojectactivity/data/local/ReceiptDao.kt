@@ -15,6 +15,9 @@ interface ReceiptDao {
     @Query("SELECT * FROM receipts WHERE userId = :userId ORDER BY createdAt DESC")
     fun getAllReceipts(userId: String): Flow<List<ReceiptEntity>>
 
+    @Query("SELECT * FROM receipts WHERE id = :id")
+    suspend fun getReceiptById(id: String): ReceiptEntity?
+
     @Query("SELECT * FROM receipts WHERE isSynced = 0")
     suspend fun getUnsyncedReceipts(): List<ReceiptEntity>
 
