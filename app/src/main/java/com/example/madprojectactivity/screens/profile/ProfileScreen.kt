@@ -69,9 +69,6 @@ fun ProfileScreen(
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Profile & Metrics") })
-        },
         contentWindowInsets = WindowInsets(0)
     ) { padding ->
         Column(
@@ -79,7 +76,7 @@ fun ProfileScreen(
                 .padding(padding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 12.dp),
+                .padding(horizontal = 20.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -88,7 +85,7 @@ fun ProfileScreen(
                 fontWeight = FontWeight.Bold
             )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
 
             // Total spend highlight
             Card(
@@ -97,7 +94,7 @@ fun ProfileScreen(
             ) {
                 Column(
                     Modifier
-                        .padding(20.dp)
+                        .padding(16.dp)
                         .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -112,7 +109,7 @@ fun ProfileScreen(
                 }
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(8.dp))
 
             // Receipt counts row
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -135,7 +132,7 @@ fun ProfileScreen(
                 )
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(8.dp))
 
             // Additional metrics row
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -151,7 +148,7 @@ fun ProfileScreen(
                 )
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(8.dp))
 
             // Top store card
             Card(
@@ -170,7 +167,7 @@ fun ProfileScreen(
                 }
             }
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(24.dp))
 
             Button(
                 onClick = { homeVm.logout() },

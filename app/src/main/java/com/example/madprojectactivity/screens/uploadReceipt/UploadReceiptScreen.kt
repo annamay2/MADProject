@@ -145,7 +145,7 @@ fun UploadReceiptScreen(
                 }
             }
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(10.dp))
 
             // Date card
             Surface(
@@ -181,7 +181,7 @@ fun UploadReceiptScreen(
                 }
             }
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(10.dp))
 
             FilledUnderlineField(
                 label = "Amount",
@@ -193,7 +193,7 @@ fun UploadReceiptScreen(
                 placeholder = "eg. 19.99"
             )
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(10.dp))
 
             FilledUnderlineField(
                 label = "Store Name",
@@ -205,7 +205,7 @@ fun UploadReceiptScreen(
                 placeholder = "eg. Aldi"
             )
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(10.dp))
 
             FilledUnderlineField(
                 label = "Gluten-Free Items",
@@ -217,7 +217,7 @@ fun UploadReceiptScreen(
                 placeholder = "eg. Bread, pasta"
             )
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(10.dp))
 
             Surface(
                 color = CardBackground,
@@ -266,7 +266,7 @@ fun UploadReceiptScreen(
             }
             
             // Add extra space at the bottom to ensure the button is clear of the navbar
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(20.dp))
         }
     }
 }
