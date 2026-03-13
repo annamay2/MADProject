@@ -23,7 +23,6 @@ import com.example.madprojectactivity.ui.theme.StatusOrange
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
@@ -38,18 +37,7 @@ fun HomeScreen(
         if (!state.isLoggedIn) onLoggedOut()
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Home") },
-                actions = {
-                    TextButton(onClick = vm::logout) {
-                        Text("Logout")
-                    }
-                }
-            )
-        }
-    ) { padding ->
+    Scaffold { padding ->
         Column(
             modifier = modifier
                 .padding(padding)
@@ -57,7 +45,17 @@ fun HomeScreen(
                 .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(12.dp))
+
+            val displayName = state.userEmail
+                ?.substringBefore("@")
+                ?.replaceFirstChar { it.uppercase() }
+                ?: ""
+            Text(
+                text = "Welcome, $displayName",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
 
             Text(
                 text = "Recent Receipts",
