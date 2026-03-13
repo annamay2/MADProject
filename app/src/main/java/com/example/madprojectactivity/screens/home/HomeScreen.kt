@@ -57,8 +57,8 @@ fun HomeScreen(
 
             Text(
                 text = "Recent Receipts",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.Gray
             )
 
             Button(
