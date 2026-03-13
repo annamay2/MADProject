@@ -59,16 +59,14 @@ fun ProfileScreen(
     // Month label
     val monthLabel = SimpleDateFormat("MMMM", Locale.getDefault()).format(Date())
 
-    val displayName = state.userEmail
-        ?.substringBefore("@")
-        ?.replaceFirstChar { it.uppercase() }
-        ?: ""
-
     LaunchedEffect(state.isLoggedIn) {
         if (!state.isLoggedIn) onLoggedOut()
     }
 
     Scaffold(
+        topBar = {
+            TopAppBar(title = { Text("Profile & Metrics") })
+        },
         contentWindowInsets = WindowInsets(0)
     ) { padding ->
         Column(
@@ -76,17 +74,9 @@ fun ProfileScreen(
                 .padding(padding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 16.dp),
+                .padding(horizontal = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "Welcome, $displayName",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(Modifier.height(12.dp))
-
             // Total spend highlight
             Card(
                 colors = CardDefaults.cardColors(containerColor = CardBackground),
