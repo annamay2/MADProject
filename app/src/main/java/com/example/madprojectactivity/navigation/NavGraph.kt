@@ -38,6 +38,7 @@ fun AppNavGraph(
         composable("home") {
             HomeScreen(
                 onUploadReceipt = { navController.navigate("uploadReceipt") },
+                onViewReceipt = { navController.navigate("viewReceipt") },
                 onLoggedOut = {
                     navController.navigate("login") {
                         popUpTo("home") { inclusive = true }
