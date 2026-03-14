@@ -5,10 +5,12 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.madprojectactivity.data.model.ReceiptEntity
+import com.example.madprojectactivity.data.model.UserProfile
 
-@Database(entities = [ReceiptEntity::class], version = 2, exportSchema = false)
+@Database(entities = [ReceiptEntity::class, UserProfile::class], version = 3, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun receiptDao(): ReceiptDao
+    abstract fun userDao(): UserDao
 
     companion object {
         @Volatile

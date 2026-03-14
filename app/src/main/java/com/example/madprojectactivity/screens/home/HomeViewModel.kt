@@ -4,18 +4,14 @@ import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.madprojectactivity.data.local.AppDatabase
-import com.example.madprojectactivity.data.model.ReceiptEntity
+import com.example.madprojectactivity.data.repository.ReceiptRepository
+import com.example.madprojectactivity.data.repository.UserRepository
 import com.google.firebase.Timestamp
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.DocumentChange
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import java.util.Date
 
 data class Receipt(
@@ -34,46 +30,52 @@ data class HomeUiState(
 )
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
-    private val auth = FirebaseAuth.getInstance()
-    private val db = FirebaseFirestore.getInstance()
-    private val receiptDao = AppDatabase.getDatabase(application).receiptDao()
+    private val userRepository = UserRepository(application)
+    private val receiptRepository = ReceiptRepository(application)
 
     private var remoteListener: ListenerRegistration? = null
 
     private val _uiState = MutableStateFlow(
         HomeUiState(
-            isLoggedIn = auth.currentUser != null,
-            userEmail = auth.currentUser?.email
+            isLoggedIn = userRepository.isLoggedIn,
+            userEmail = null
         )
     )
     val uiState: StateFlow<HomeUiState> = _uiState
 
-    private val authListener = FirebaseAuth.AuthStateListener { a ->
-        val user = a.currentUser
-        _uiState.update { it.copy(
-            isLoggedIn = user != null,
-            userEmail = user?.email
-        ) }
-        if (user != null) {
-            observeLocalReceipts(user.uid)
-            startRemoteSync(user.uid)
+    private val authListener = userRepository.addAuthStateListener { uid ->
+        if (uid != null) {
+            observeUser(uid)
+            observeLocalReceipts()
+            startRemoteSync()
         } else {
             stopRemoteSync()
-            _uiState.update { it.copy(receipts = emptyList()) }
+            _uiState.update { it.copy(isLoggedIn = false, userEmail = null, receipts = emptyList()) }
         }
     }
 
     init {
-        auth.addAuthStateListener(authListener)
-        auth.currentUser?.let {
-            observeLocalReceipts(it.uid)
-            startRemoteSync(it.uid)
+        userRepository.currentUserId?.let { uid ->
+            viewModelScope.launch {
+                userRepository.persistCurrentUser()
+            }
+            observeUser(uid)
+            observeLocalReceipts()
+            startRemoteSync()
         }
     }
 
-    private fun observeLocalReceipts(uid: String) {
+    private fun observeUser(uid: String) {
         viewModelScope.launch {
-            receiptDao.getAllReceipts(uid).collect { entities ->
+            userRepository.observeUser(uid).collect { user ->
+                _uiState.update { it.copy(isLoggedIn = true, userEmail = user?.email) }
+            }
+        }
+    }
+
+    private fun observeLocalReceipts() {
+        viewModelScope.launch {
+            receiptRepository.getReceiptsForUser().collect { entities ->
                 val list = entities.map { entity ->
                     Receipt(
                         id = entity.id,
@@ -89,43 +91,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun startRemoteSync(uid: String) {
+    private fun startRemoteSync() {
         remoteListener?.remove()
-
-        remoteListener = db.collection("users")
-            .document(uid)
-            .collection("receipts")
-            .addSnapshotListener { snapshot, e ->
-                if (e != null || snapshot == null) return@addSnapshotListener
-
-                viewModelScope.launch {
-                    for (change in snapshot.documentChanges) {
-                        val doc = change.document
-                        when (change.type) {
-                            DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
-                                val existing = receiptDao.getReceiptById(doc.id)
-
-                                val entity = ReceiptEntity(
-                                    id = doc.id,
-                                    userId = uid,
-                                    amount = doc.getDouble("amount") ?: 0.0,
-                                    storeName = doc.getString("storeName") ?: "",
-                                    glutenFreeItems = doc.getString("glutenFreeItems") ?: "",
-                                    uploadedToRevenue = doc.getBoolean("uploadedToRevenue") ?: false,
-                                    date = doc.getTimestamp("date")?.toDate()?.time ?: 0L,
-                                    createdAt = doc.getTimestamp("createdAt")?.toDate()?.time ?: System.currentTimeMillis(),
-                                    isSynced = true,
-                                    imageUri = existing?.imageUri
-                                )
-                                receiptDao.insertReceipt(entity)
-                            }
-                            DocumentChange.Type.REMOVED -> {
-                                receiptDao.deleteById(doc.id)
-                            }
-                        }
-                    }
-                }
-            }
+        remoteListener = receiptRepository.addRemoteListener()
     }
 
     private fun stopRemoteSync() {
@@ -134,10 +102,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     override fun onCleared() {
-        auth.removeAuthStateListener(authListener)
+        userRepository.removeAuthStateListener(authListener)
         stopRemoteSync()
         super.onCleared()
     }
 
-    fun logout() = auth.signOut()
+    fun logout() = userRepository.signOut()
 }
