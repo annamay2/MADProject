@@ -1,3 +1,5 @@
+// AI-Assisted (Gemini): Used to verify authentication logic
+
 package com.example.madprojectactivity.screens.login
 
 import android.app.Application
@@ -49,6 +51,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
 
+        // AI Assisted (Gemini): Used to implement launch functionality
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
@@ -75,6 +78,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
 
+        // AI Assisted (Gemini): Used to implement launch functionality
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {

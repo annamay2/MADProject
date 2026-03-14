@@ -1,3 +1,5 @@
+// AI-Assisted (Gemini): Used to correct layout and coordinate elements
+
 package com.example.madprojectactivity.screens.home
 
 import androidx.compose.foundation.background
