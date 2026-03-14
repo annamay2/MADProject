@@ -29,7 +29,7 @@ class SyncWorker(
 
         for (receipt in unsyncedReceipts) {
             try {
-                val receiptMap = mapOf(
+                val receiptMap = mutableMapOf<String, Any>(
                     "amount" to receipt.amount,
                     "storeName" to receipt.storeName,
                     "glutenFreeItems" to receipt.glutenFreeItems,

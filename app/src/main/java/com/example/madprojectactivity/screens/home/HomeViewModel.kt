@@ -1,6 +1,7 @@
 package com.example.madprojectactivity.screens.home
 
 import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.madprojectactivity.data.local.AppDatabase
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.util.Date
 
 data class Receipt(
@@ -21,7 +23,8 @@ data class Receipt(
     val amount: Double = 0.0,
     val storeName: String = "",
     val date: Timestamp? = null,
-    val uploadedToRevenue: Boolean = false
+    val uploadedToRevenue: Boolean = false,
+    val imageUri: Uri? = null
 )
 
 data class HomeUiState(
@@ -62,7 +65,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         auth.addAuthStateListener(authListener)
-        auth.currentUser?.let { 
+        auth.currentUser?.let {
             observeLocalReceipts(it.uid)
             startRemoteSync(it.uid)
         }
@@ -70,7 +73,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun observeLocalReceipts(uid: String) {
         viewModelScope.launch {
-            // Observing the local Room database
             receiptDao.getAllReceipts(uid).collect { entities ->
                 val list = entities.map { entity ->
                     Receipt(
@@ -78,7 +80,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                         amount = entity.amount,
                         storeName = entity.storeName,
                         date = Timestamp(Date(entity.date)),
-                        uploadedToRevenue = entity.uploadedToRevenue
+                        uploadedToRevenue = entity.uploadedToRevenue,
+                        imageUri = entity.imageUri?.let { Uri.parse(it) }
                     )
                 }
                 _uiState.update { it.copy(receipts = list) }
@@ -89,7 +92,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private fun startRemoteSync(uid: String) {
         remoteListener?.remove()
 
-        // Sync Firestore data into Room
         remoteListener = db.collection("users")
             .document(uid)
             .collection("receipts")
@@ -101,6 +103,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                         val doc = change.document
                         when (change.type) {
                             DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
+                                val existing = receiptDao.getReceiptById(doc.id)
+
                                 val entity = ReceiptEntity(
                                     id = doc.id,
                                     userId = uid,
@@ -110,7 +114,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                                     uploadedToRevenue = doc.getBoolean("uploadedToRevenue") ?: false,
                                     date = doc.getTimestamp("date")?.toDate()?.time ?: 0L,
                                     createdAt = doc.getTimestamp("createdAt")?.toDate()?.time ?: System.currentTimeMillis(),
-                                    isSynced = true
+                                    isSynced = true,
+                                    imageUri = existing?.imageUri
                                 )
                                 receiptDao.insertReceipt(entity)
                             }

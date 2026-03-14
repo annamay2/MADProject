@@ -1,6 +1,9 @@
+// AI-generated (Claude): Added onImageUriChange method and pass imageUri to
+// ReceiptEntity on save for local + remote image persistence.
 package com.example.madprojectactivity.screens.receipts
 
 import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.Constraints
@@ -106,6 +109,10 @@ class UploadReceiptViewModel(application: Application) : AndroidViewModel(applic
         _uiState.update { it.copy(uploadedToRevenue = value) }
     }
 
+    fun onImageUriChange(uri: Uri?) {
+        _uiState.update { it.copy(imageUri = uri) }
+    }
+
     fun saveReceipt() {
         val uid = auth.currentUser?.uid ?: run {
             _uiState.update { it.copy(errorMessage = "Not logged in") }
@@ -125,6 +132,7 @@ class UploadReceiptViewModel(application: Application) : AndroidViewModel(applic
                 // 1. Save to local Room database first
                 val receiptEntity = ReceiptEntity(
                     userId = uid,
+                    imageUri = _uiState.value.imageUri?.toString(),
                     amount = amountDouble,
                     storeName = _uiState.value.storeName,
                     glutenFreeItems = _uiState.value.glutenFreeItems,
