@@ -1,5 +1,3 @@
-// AI-generated (Claude): Added CameraX 1.4.1, Firebase Storage, Coil image loading,
-// Material Icons Extended, and Guava dependencies for camera capture and image sync.
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -65,7 +63,6 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
-    implementation("com.google.firebase:firebase-storage")
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.compose.runtime.saveable)

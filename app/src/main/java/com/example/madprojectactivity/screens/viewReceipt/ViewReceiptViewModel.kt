@@ -1,4 +1,3 @@
-// AI-generated (Claude): Pass imageUri to Receipt model from Room and Firestore fallback.
 package com.example.madprojectactivity.screens.viewReceipt
 
 import android.app.Application
@@ -78,7 +77,7 @@ class ViewReceiptViewModel(application: Application) : AndroidViewModel(applicat
                                 storeName = doc.getString("storeName") ?: "",
                                 date = doc.getTimestamp("date"),
                                 uploadedToRevenue = doc.getBoolean("uploadedToRevenue") ?: false,
-                                imageUri = doc.getString("imageUrl")?.toUri()
+                                imageUri = null
                             )
                             _uiState.update { it.copy(receipt = receipt, isLoading = false) }
                         } else {

@@ -1,10 +1,7 @@
-// AI-generated (Claude): Added image sync — downloads images from Firebase Storage
-// on remote sync, passes imageUri to Receipt UI model, preserves local paths.
 package com.example.madprojectactivity.screens.home
 
 import android.app.Application
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.madprojectactivity.data.local.AppDatabase
@@ -14,13 +11,11 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.io.File
 import java.util.Date
 
 data class Receipt(
@@ -108,7 +103,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                         val doc = change.document
                         when (change.type) {
                             DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
-                                val remoteUrl = doc.getString("imageUrl")
                                 val existing = receiptDao.getReceiptById(doc.id)
 
                                 val entity = ReceiptEntity(
@@ -121,20 +115,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                                     date = doc.getTimestamp("date")?.toDate()?.time ?: 0L,
                                     createdAt = doc.getTimestamp("createdAt")?.toDate()?.time ?: System.currentTimeMillis(),
                                     isSynced = true,
-                                    imageUri = existing?.imageUri,
-                                    remoteImageUrl = remoteUrl
+                                    imageUri = existing?.imageUri
                                 )
                                 receiptDao.insertReceipt(entity)
-
-                                // Download image if we have a remote URL but no local file
-                                if (remoteUrl != null && existing?.imageUri == null) {
-                                    try {
-                                        val localUri = downloadImageToLocal(remoteUrl, doc.id)
-                                        receiptDao.updateLocalImageUri(doc.id, localUri.toString())
-                                    } catch (ex: Exception) {
-                                        Log.w("HomeViewModel", "Image download failed for ${doc.id}", ex)
-                                    }
-                                }
                             }
                             DocumentChange.Type.REMOVED -> {
                                 receiptDao.deleteById(doc.id)
@@ -143,15 +126,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
             }
-    }
-
-    private suspend fun downloadImageToLocal(remoteUrl: String, receiptId: String): Uri {
-        val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(remoteUrl)
-        val photosDir = File(getApplication<Application>().filesDir, "camera_photos")
-        if (!photosDir.exists()) photosDir.mkdirs()
-        val localFile = File(photosDir, "$receiptId.jpg")
-        storageRef.getFile(localFile).await()
-        return Uri.fromFile(localFile)
     }
 
     private fun stopRemoteSync() {

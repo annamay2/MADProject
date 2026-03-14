@@ -1,5 +1,4 @@
-// AI-generated (Claude): Changed imageUri from Uri? to String?, added remoteImageUrl
-// field for Firebase Storage download URLs to support image sync.
+// AI-generated (Claude): Changed imageUri from Uri? to String? for local image storage.
 package com.example.madprojectactivity.data.model
 
 import androidx.room.Entity
@@ -10,7 +9,6 @@ import java.util.UUID
 data class ReceiptEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
     val imageUri: String? = null,
-    val remoteImageUrl: String? = null,
     val userId: String,
     val amount: Double,
     val storeName: String,

@@ -1,5 +1,5 @@
 // AI-generated (Claude): Added receipt image display via Coil AsyncImage, share button
-// using FileProvider, and scrollable content layout.
+// using FileProvider.
 @file:OptIn(ExperimentalMaterial3Api::class)
 
 package com.example.madprojectactivity.screens.viewReceipt
@@ -101,25 +101,6 @@ fun ViewReceiptScreen(
                             }
                         }
                     } else if (state.receipt != null) {
-                        if (state.receipt?.imageUri != null) {
-                            IconButton(onClick = {
-                                val uri = state.receipt!!.imageUri!!
-                                val file = File(uri.path!!)
-                                val contentUri = FileProvider.getUriForFile(
-                                    context,
-                                    "${context.packageName}.fileprovider",
-                                    file
-                                )
-                                val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                    type = "image/jpeg"
-                                    putExtra(Intent.EXTRA_STREAM, contentUri)
-                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                }
-                                context.startActivity(Intent.createChooser(shareIntent, "Share receipt image"))
-                            }) {
-                                Icon(Icons.Default.Share, contentDescription = "Share image")
-                            }
-                        }
                         IconButton(onClick = vm::startEditing) {
                             Icon(Icons.Default.Edit, contentDescription = "Edit")
                         }
