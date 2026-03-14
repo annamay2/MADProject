@@ -1,3 +1,5 @@
+// AI-generated (Claude): Added updateLocalImageUri query for setting local path after
+// downloading images from Firebase Storage.
 package com.example.madprojectactivity.data.local
 
 import androidx.room.Dao
@@ -26,4 +28,7 @@ interface ReceiptDao {
 
     @Query("DELETE FROM receipts WHERE id = :id")
     suspend fun deleteById(id: String)
+
+    @Query("UPDATE receipts SET imageUri = :localUri WHERE id = :id")
+    suspend fun updateLocalImageUri(id: String, localUri: String)
 }

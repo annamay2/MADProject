@@ -1,5 +1,8 @@
+// AI-generated (Claude): Added camera route, passes captured image URI back to
+// UploadReceiptScreen via savedStateHandle. Hides bottom nav on camera screen.
 package com.example.madprojectactivity.navigation
 
+import android.net.Uri
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -9,6 +12,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -17,12 +22,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.madprojectactivity.screens.camera.CameraView
 import com.example.madprojectactivity.screens.home.HomeScreen
 import com.example.madprojectactivity.screens.login.LoginScreen
 import com.example.madprojectactivity.screens.profile.ProfileScreen
 import com.example.madprojectactivity.screens.receipts.UploadReceiptScreen
 import com.example.madprojectactivity.screens.viewReceipt.ViewReceiptScreen
 import com.google.firebase.auth.FirebaseAuth
+import java.io.File
 
 sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
     object Home : Screen("home", "Home", Icons.Default.Home)
@@ -50,7 +57,7 @@ fun AppNavGraph(
     Scaffold(
         bottomBar = {
             val route = currentDestination?.route
-            if (route != null && route != "login" && !route.startsWith("viewReceipt")) {
+            if (route != null && route != "login" && route != "camera" && !route.startsWith("viewReceipt")) {
                 NavigationBar {
                     bottomNavItems.forEach { screen ->
                         NavigationBarItem(
@@ -99,10 +106,39 @@ fun AppNavGraph(
                 )
             }
 
-            composable(Screen.Upload.route) {
+            composable(Screen.Upload.route) { backStackEntry ->
+                // Observe the image URI result from camera screen
+                val savedStateHandle = backStackEntry.savedStateHandle
+                val imageUriString by savedStateHandle.getStateFlow<String?>("imageUri", null)
+                    .collectAsState()
+
                 UploadReceiptScreen(
                     onBack = { navController.popBackStack() },
-                    onDone = { navController.navigate(Screen.Home.route) }
+                    onDone = { navController.navigate(Screen.Home.route) },
+                    onOpenCamera = { navController.navigate("camera") },
+                    capturedImageUri = imageUriString?.let { Uri.parse(it) }
+                )
+            }
+
+            composable("camera") {
+                val context = LocalContext.current
+                val outputDirectory = remember {
+                    File(context.filesDir, "camera_photos").apply { mkdirs() }
+                }
+                val executor = remember { ContextCompat.getMainExecutor(context) }
+
+                CameraView(
+                    outputDirectory = outputDirectory,
+                    executor = executor,
+                    onImageCaptured = { uri ->
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("imageUri", uri.toString())
+                        navController.popBackStack()
+                    },
+                    onError = {
+                        navController.popBackStack()
+                    }
                 )
             }
 

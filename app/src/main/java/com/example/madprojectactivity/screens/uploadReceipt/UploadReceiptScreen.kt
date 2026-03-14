@@ -1,7 +1,10 @@
+// AI-generated (Claude):  added image thumbnail preview via Coil,
+// receives captured URI from camera screen.
 @file:OptIn(ExperimentalMaterial3Api::class)
 
 package com.example.madprojectactivity.screens.receipts
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -12,18 +15,23 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.madprojectactivity.ui.theme.AccentBackground
 import com.example.madprojectactivity.ui.theme.BorderAccent
 import com.example.madprojectactivity.ui.theme.CardBackground
@@ -41,13 +49,22 @@ fun UploadReceiptScreen(
     vm: UploadReceiptViewModel = viewModel(),
     onBack: () -> Unit,
     onDone: () -> Unit = {},
-    onUploadImage: () -> Unit = {}
+    onOpenCamera: () -> Unit = {},
+    capturedImageUri: Uri? = null
 ) {
+
     val state by vm.uiState.collectAsState()
     val scrollState = rememberScrollState()
 
     var showDatePicker by remember { mutableStateOf(false) }
     val formatter = remember { DateTimeFormatter.ofPattern("EEE, MMM d") }
+
+    // Update ViewModel when we receive an image URI from the camera
+    LaunchedEffect(capturedImageUri) {
+        if (capturedImageUri != null) {
+            vm.onImageUriChange(capturedImageUri)
+        }
+    }
 
     // Handle success/error messages or navigation
     LaunchedEffect(state.successMessage) {
@@ -110,37 +127,62 @@ fun UploadReceiptScreen(
                 .padding(start = 20.dp, end = 20.dp, bottom = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Upload Image pill
+            // Take Photo pill
             Surface(
                 color = AccentBackground,
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(64.dp)
+                    .heightIn(min = 64.dp)
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 18.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Spacer(Modifier.width(12.dp))
-                    Text(
-                        text = "Upload Image",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Spacer(Modifier.weight(1f))
-                    Surface(
-                        shape = CircleShape,
-                        color = Color.Transparent,
+                Column {
+                    Row(
                         modifier = Modifier
-                            .size(34.dp)
-                            .border(1.dp, BorderAccent, CircleShape)
+                            .fillMaxWidth()
+                            .padding(horizontal = 18.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = onUploadImage) {
-                            Icon(Icons.Default.Add, contentDescription = "Add", tint = IconTint)
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            text = "Take Photo",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(Modifier.weight(1f))
+                        Surface(
+                            shape = CircleShape,
+                            color = Color.Transparent,
+                            modifier = Modifier
+                                .size(34.dp)
+                                .border(1.dp, BorderAccent, CircleShape)
+                        ) {
+                            IconButton(onClick = onOpenCamera) {
+                                Icon(
+                                    Icons.Filled.CameraAlt,
+                                    contentDescription = "Take photo",
+                                    tint = IconTint
+                                )
+                            }
                         }
+                    }
+
+                    // Show captured image thumbnail
+                    val displayUri = state.imageUri
+                    if (displayUri != null) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(displayUri)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "Captured receipt",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .padding(horizontal = 18.dp)
+                                .padding(bottom = 12.dp)
+                                .fillMaxWidth()
+                                .height(180.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                        )
                     }
                 }
             }
@@ -264,7 +306,7 @@ fun UploadReceiptScreen(
                     Text("Done", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 }
             }
-            
+
             // Add extra space at the bottom to ensure the button is clear of the navbar
             Spacer(Modifier.height(20.dp))
         }

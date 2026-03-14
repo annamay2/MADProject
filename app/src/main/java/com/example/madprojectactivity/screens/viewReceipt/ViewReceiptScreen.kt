@@ -1,3 +1,5 @@
+// AI-generated (Claude): Added receipt image display via Coil AsyncImage, share button
+// using FileProvider, and scrollable content layout.
 @file:OptIn(ExperimentalMaterial3Api::class)
 
 package com.example.madprojectactivity.screens.viewReceipt
@@ -7,22 +9,31 @@ import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.core.content.FileProvider
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import java.io.File
 import com.example.madprojectactivity.ui.theme.AccentBackground
 import com.example.madprojectactivity.ui.theme.CardBackgroundLight
 import com.example.madprojectactivity.ui.theme.PrimaryPurple
@@ -39,6 +50,7 @@ fun ViewReceiptScreen(
     onBack: () -> Unit
 ) {
     val state by vm.uiState.collectAsState()
+    val context = LocalContext.current
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(receiptId) {
@@ -89,6 +101,25 @@ fun ViewReceiptScreen(
                             }
                         }
                     } else if (state.receipt != null) {
+                        if (state.receipt?.imageUri != null) {
+                            IconButton(onClick = {
+                                val uri = state.receipt!!.imageUri!!
+                                val file = File(uri.path!!)
+                                val contentUri = FileProvider.getUriForFile(
+                                    context,
+                                    "${context.packageName}.fileprovider",
+                                    file
+                                )
+                                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                    type = "image/jpeg"
+                                    putExtra(Intent.EXTRA_STREAM, contentUri)
+                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                }
+                                context.startActivity(Intent.createChooser(shareIntent, "Share receipt image"))
+                            }) {
+                                Icon(Icons.Default.Share, contentDescription = "Share image")
+                            }
+                        }
                         IconButton(onClick = vm::startEditing) {
                             Icon(Icons.Default.Edit, contentDescription = "Edit")
                         }
@@ -119,12 +150,11 @@ fun ViewReceiptScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
                             .padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(24.dp)
                     ) {
-                        val context = LocalContext.current
-
                         if (state.isEditing) {
                             OutlinedTextField(
                                 value = state.editStoreName,
@@ -167,6 +197,22 @@ fun ViewReceiptScreen(
                                         color = PrimaryPurple
                                     )
                                 }
+                            }
+
+                            // Receipt Image
+                            if (receipt.imageUri != null) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(context)
+                                        .data(receipt.imageUri)
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = "Receipt photo",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(200.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                )
                             }
 
                             // Details Card

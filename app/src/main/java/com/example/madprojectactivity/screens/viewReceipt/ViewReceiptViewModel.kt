@@ -1,3 +1,4 @@
+// AI-generated (Claude): Pass imageUri to Receipt model from Room and Firestore fallback.
 package com.example.madprojectactivity.screens.viewReceipt
 
 import android.app.Application
@@ -7,6 +8,7 @@ import androidx.work.Constraints
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import android.net.Uri
 import com.example.madprojectactivity.data.local.AppDatabase
 import com.example.madprojectactivity.data.worker.SyncWorker
 import com.example.madprojectactivity.screens.home.Receipt
@@ -19,6 +21,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.Date
+import androidx.core.net.toUri
 
 data class ViewReceiptUiState(
     val receipt: Receipt? = null,
@@ -53,7 +56,8 @@ class ViewReceiptViewModel(application: Application) : AndroidViewModel(applicat
                         amount = entity.amount,
                         storeName = entity.storeName,
                         date = Timestamp(Date(entity.date)),
-                        uploadedToRevenue = entity.uploadedToRevenue
+                        uploadedToRevenue = entity.uploadedToRevenue,
+                        imageUri = entity.imageUri?.toUri()
                     )
                     _uiState.update { it.copy(receipt = receipt, isLoading = false) }
                 } else {
@@ -73,7 +77,8 @@ class ViewReceiptViewModel(application: Application) : AndroidViewModel(applicat
                                 amount = doc.getDouble("amount") ?: 0.0,
                                 storeName = doc.getString("storeName") ?: "",
                                 date = doc.getTimestamp("date"),
-                                uploadedToRevenue = doc.getBoolean("uploadedToRevenue") ?: false
+                                uploadedToRevenue = doc.getBoolean("uploadedToRevenue") ?: false,
+                                imageUri = doc.getString("imageUrl")?.toUri()
                             )
                             _uiState.update { it.copy(receipt = receipt, isLoading = false) }
                         } else {
