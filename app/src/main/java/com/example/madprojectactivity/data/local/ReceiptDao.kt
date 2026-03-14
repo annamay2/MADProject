@@ -12,7 +12,7 @@ interface ReceiptDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertReceipt(receipt: ReceiptEntity)
 
-    @Query("SELECT * FROM receipts WHERE userId = :userId ORDER BY createdAt DESC")
+    @Query("SELECT * FROM receipts WHERE userId = :userId ORDER BY date DESC")
     fun getAllReceipts(userId: String): Flow<List<ReceiptEntity>>
 
     @Query("SELECT * FROM receipts WHERE id = :id")
