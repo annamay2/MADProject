@@ -8,6 +8,7 @@ import com.example.madprojectactivity.data.repository.ReceiptRepository
 import com.example.madprojectactivity.data.repository.UserRepository
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.ListenerRegistration
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -34,6 +35,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val receiptRepository = ReceiptRepository(application)
 
     private var remoteListener: ListenerRegistration? = null
+    private var observeUserJob: Job? = null
+    private var observeReceiptsJob: Job? = null
 
     private val _uiState = MutableStateFlow(
         HomeUiState(
@@ -49,7 +52,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             observeLocalReceipts()
             startRemoteSync()
         } else {
-            stopRemoteSync()
+            stopObservers()
             _uiState.update { it.copy(isLoggedIn = false, userEmail = null, receipts = emptyList()) }
         }
     }
@@ -66,7 +69,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun observeUser(uid: String) {
-        viewModelScope.launch {
+        observeUserJob?.cancel()
+        observeUserJob = viewModelScope.launch {
             userRepository.observeUser(uid).collect { user ->
                 _uiState.update { it.copy(isLoggedIn = true, userEmail = user?.email) }
             }
@@ -74,7 +78,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun observeLocalReceipts() {
-        viewModelScope.launch {
+        observeReceiptsJob?.cancel()
+        observeReceiptsJob = viewModelScope.launch {
             receiptRepository.getReceiptsForUser().collect { entities ->
                 val list = entities.map { entity ->
                     Receipt(
@@ -96,14 +101,18 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         remoteListener = receiptRepository.addRemoteListener()
     }
 
-    private fun stopRemoteSync() {
+    private fun stopObservers() {
+        observeUserJob?.cancel()
+        observeUserJob = null
+        observeReceiptsJob?.cancel()
+        observeReceiptsJob = null
         remoteListener?.remove()
         remoteListener = null
     }
 
     override fun onCleared() {
         userRepository.removeAuthStateListener(authListener)
-        stopRemoteSync()
+        stopObservers()
         super.onCleared()
     }
 

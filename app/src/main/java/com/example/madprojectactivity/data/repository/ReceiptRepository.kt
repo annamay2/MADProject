@@ -2,6 +2,7 @@ package com.example.madprojectactivity.data.repository
 
 import android.content.Context
 import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
@@ -38,14 +39,10 @@ class ReceiptRepository(private val context: Context) {
         if (local != null) return local
 
         // Fall back to Firestore if not found locally
-        return try {
-            val userId = currentUserId
-            fetchReceiptFromFirestore(userId, receiptId)?.also { entity ->
-                // stores the Firestore result locally
-                receiptDao.insertReceipt(entity)
-            }
-        } catch (e: Exception) {
-            null
+        val userId = currentUserId
+        return fetchReceiptFromFirestore(userId, receiptId)?.also { entity ->
+            // stores the Firestore result locally
+            receiptDao.insertReceipt(entity)
         }
     }
 
@@ -80,14 +77,12 @@ class ReceiptRepository(private val context: Context) {
         )
         receiptDao.insertReceipt(updated)
 
-        // 2. Schedule background sync
-        scheduleSyncWorker()
-
-        // 3. Best-effort immediate Firestore update
+        // 2. Try immediate Firestore update then fall back to background sync
         try {
             updateReceiptInFirestore(userId, receiptId, fields)
+            receiptDao.markAsSynced(receiptId)
         } catch (_: Exception) {
-            // SyncWorker will handle it
+            scheduleSyncWorker()
         }
     }
 
@@ -215,6 +210,10 @@ class ReceiptRepository(private val context: Context) {
             .setConstraints(constraints)
             .build()
 
-        workManager.enqueue(syncRequest)
+        workManager.enqueueUniqueWork(
+            "receipt_sync_work",
+            ExistingWorkPolicy.KEEP,
+            syncRequest
+        )
     }
 }
