@@ -24,6 +24,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.madprojectactivity.ui.theme.AccentBackground
+import com.example.madprojectactivity.ui.theme.BorderAccent
+import com.example.madprojectactivity.ui.theme.CardBackground
+import com.example.madprojectactivity.ui.theme.IconTint
+import com.example.madprojectactivity.ui.theme.PrimaryPurple
+import com.example.madprojectactivity.ui.theme.SubtitleText
+import com.example.madprojectactivity.ui.theme.UnderlineColor
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -41,12 +48,6 @@ fun UploadReceiptScreen(
 
     var showDatePicker by remember { mutableStateOf(false) }
     val formatter = remember { DateTimeFormatter.ofPattern("EEE, MMM d") }
-
-    // Colors
-    val pageBg = Color(0xFFFFFFFF)
-    val cardBg = Color(0xFFEFEAF4)
-    val uploadBg = Color(0xFFEDE4FF)
-    val primaryPurple = Color(0xFF6E58B5)
 
     // Handle success/error messages or navigation
     LaunchedEffect(state.successMessage) {
@@ -97,20 +98,21 @@ fun UploadReceiptScreen(
                     }
                 }
             )
-        }
+        },
+        contentWindowInsets = WindowInsets(0)
     ) { padding ->
         Column(
             modifier = modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(pageBg)
+                .background(Color.White)
                 .verticalScroll(scrollState)
-                .padding(24.dp),
+                .padding(start = 20.dp, end = 20.dp, bottom = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Upload Image pill
             Surface(
-                color = uploadBg,
+                color = AccentBackground,
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -134,20 +136,20 @@ fun UploadReceiptScreen(
                         color = Color.Transparent,
                         modifier = Modifier
                             .size(34.dp)
-                            .border(1.dp, Color(0xFFE0D7F2), CircleShape)
+                            .border(1.dp, BorderAccent, CircleShape)
                     ) {
                         IconButton(onClick = onUploadImage) {
-                            Icon(Icons.Default.Add, contentDescription = "Add", tint = Color(0xFF4D4D4D))
+                            Icon(Icons.Default.Add, contentDescription = "Add", tint = IconTint)
                         }
                     }
                 }
             }
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(10.dp))
 
             // Date card
             Surface(
-                color = cardBg,
+                color = CardBackground,
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -163,7 +165,7 @@ fun UploadReceiptScreen(
                         Text(
                             text = "Select date",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color(0xFF555555)
+                            color = SubtitleText
                         )
                         Spacer(Modifier.height(10.dp))
                         Text(
@@ -174,12 +176,12 @@ fun UploadReceiptScreen(
                     }
 
                     IconButton(onClick = { showDatePicker = true }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit date", tint = Color(0xFF4D4D4D))
+                        Icon(Icons.Default.Edit, contentDescription = "Edit date", tint = IconTint)
                     }
                 }
             }
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(10.dp))
 
             FilledUnderlineField(
                 label = "Amount",
@@ -187,63 +189,71 @@ fun UploadReceiptScreen(
                 onValueChange = vm::onAmountChange,
                 prefix = "€",
                 keyboardType = KeyboardType.Decimal,
-                cardBg = cardBg,
+                cardBg = CardBackground,
                 placeholder = "eg. 19.99"
             )
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(10.dp))
 
             FilledUnderlineField(
                 label = "Store Name",
                 value = state.storeName,
                 onValueChange = vm::onStoreNameChange,
                 keyboardType = KeyboardType.Text,
-                cardBg = cardBg,
+                cardBg = CardBackground,
                 showClear = true,
                 placeholder = "eg. Aldi"
             )
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(10.dp))
 
             FilledUnderlineField(
                 label = "Gluten-Free Items",
                 value = state.glutenFreeItems,
                 onValueChange = vm::onGlutenFreeItemsChange,
                 keyboardType = KeyboardType.Text,
-                cardBg = cardBg,
+                cardBg = CardBackground,
                 showClear = true,
                 placeholder = "eg. Bread, pasta"
             )
 
-            Spacer(Modifier.height(22.dp))
+            Spacer(Modifier.height(10.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+            Surface(
+                color = CardBackground,
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = "Uploaded to Revenue",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(Modifier.weight(1f))
-                Checkbox(
-                    checked = state.uploadedToRevenue,
-                    onCheckedChange = vm::onUploadedToRevenueChange
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 18.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Uploaded to Revenue",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = SubtitleText,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Checkbox(
+                        checked = state.uploadedToRevenue,
+                        onCheckedChange = vm::onUploadedToRevenueChange
+                    )
+                }
             }
 
             if (state.errorMessage != null) {
                 Text(state.errorMessage!!, color = MaterialTheme.colorScheme.error)
             }
 
-            Spacer(Modifier.height(26.dp))
+            Spacer(Modifier.height(16.dp))
 
             Button(
                 onClick = { vm.saveReceipt() },
                 enabled = !state.isSaving,
                 shape = RoundedCornerShape(40.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = primaryPurple),
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryPurple),
                 contentPadding = PaddingValues(horizontal = 28.dp, vertical = 14.dp)
             ) {
                 if (state.isSaving) {
@@ -256,7 +266,7 @@ fun UploadReceiptScreen(
             }
             
             // Add extra space at the bottom to ensure the button is clear of the navbar
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(20.dp))
         }
     }
 }
@@ -272,7 +282,7 @@ private fun FilledUnderlineField(
     showClear: Boolean = false,
     placeholder: String? = null
 ) {
-    val underline = Color(0xFF3F3F3F)
+    val underline = UnderlineColor
 
     Surface(
         color = cardBg,
@@ -289,7 +299,7 @@ private fun FilledUnderlineField(
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF555555)
+                color = SubtitleText
             )
 
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -330,7 +340,7 @@ private fun FilledUnderlineField(
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = "Clear",
-                            tint = Color(0xFF4D4D4D)
+                            tint = IconTint
                         )
                     }
                 }
