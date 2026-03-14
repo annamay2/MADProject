@@ -6,30 +6,20 @@ import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.work.Constraints
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import com.example.madprojectactivity.data.local.AppDatabase
 import com.example.madprojectactivity.data.model.ReceiptEntity
-import com.example.madprojectactivity.data.worker.SyncWorker
-import com.google.firebase.Timestamp
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
+import com.example.madprojectactivity.data.repository.ReceiptRepository
+import com.example.madprojectactivity.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 import java.time.ZoneId
 
 class UploadReceiptViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val auth = FirebaseAuth.getInstance()
-    private val db = FirebaseFirestore.getInstance()
-    private val receiptDao = AppDatabase.getDatabase(application).receiptDao()
-    private val workManager = WorkManager.getInstance(application)
+    private val userRepository = UserRepository(application)
+    private val repository = ReceiptRepository(application)
 
     private val _uiState = MutableStateFlow(UploadReceiptUiState())
     val uiState: StateFlow<UploadReceiptUiState> = _uiState
@@ -44,7 +34,7 @@ class UploadReceiptViewModel(application: Application) : AndroidViewModel(applic
     }
 
     fun saveCeliacSpend() {
-        val uid = auth.currentUser?.uid
+        val uid = userRepository.currentUserId
         if (uid == null) {
             _uiState.update { it.copy(errorMessage = "You must be logged in to save this.") }
             return
@@ -59,16 +49,16 @@ class UploadReceiptViewModel(application: Application) : AndroidViewModel(applic
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, errorMessage = null, successMessage = null) }
             try {
-                val doc = mapOf(
-                    "celiacAmount" to amount,
-                    "createdAt" to Timestamp.now()
+                val receiptEntity = ReceiptEntity(
+                    userId = uid,
+                    amount = amount,
+                    storeName = "",
+                    glutenFreeItems = "",
+                    uploadedToRevenue = false,
+                    date = System.currentTimeMillis(),
+                    isSynced = false
                 )
-
-                db.collection("users")
-                    .document(uid)
-                    .collection("receipts")
-                    .add(doc)
-                    .await()
+                repository.insertReceipt(receiptEntity)
 
                 _uiState.update {
                     it.copy(
@@ -114,7 +104,7 @@ class UploadReceiptViewModel(application: Application) : AndroidViewModel(applic
     }
 
     fun saveReceipt() {
-        val uid = auth.currentUser?.uid ?: run {
+        val uid = userRepository.currentUserId ?: run {
             _uiState.update { it.copy(errorMessage = "Not logged in") }
             return
         }
@@ -129,7 +119,6 @@ class UploadReceiptViewModel(application: Application) : AndroidViewModel(applic
             _uiState.update { it.copy(isSaving = true) }
 
             try {
-                // 1. Save to local Room database first
                 val receiptEntity = ReceiptEntity(
                     userId = uid,
                     imageUri = _uiState.value.imageUri?.toString(),
@@ -140,19 +129,9 @@ class UploadReceiptViewModel(application: Application) : AndroidViewModel(applic
                     date = _uiState.value.date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli(),
                     isSynced = false
                 )
-                
-                receiptDao.insertReceipt(receiptEntity)
 
-                // 2. Schedule SyncWorker
-                val constraints = Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build()
-
-                val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>()
-                    .setConstraints(constraints)
-                    .build()
-
-                workManager.enqueue(syncRequest)
+                // Repository handles Room insert + scheduling SyncWorker
+                repository.insertReceipt(receiptEntity)
 
                 _uiState.update {
                     it.copy(

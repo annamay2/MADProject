@@ -28,7 +28,6 @@ import com.example.madprojectactivity.screens.login.LoginScreen
 import com.example.madprojectactivity.screens.profile.ProfileScreen
 import com.example.madprojectactivity.screens.receipts.UploadReceiptScreen
 import com.example.madprojectactivity.screens.viewReceipt.ViewReceiptScreen
-import com.google.firebase.auth.FirebaseAuth
 import java.io.File
 
 sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
@@ -39,14 +38,12 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector)
 
 @Composable
 fun AppNavGraph(
+    startDestination: String,
     modifier: Modifier = Modifier
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-
-    val isLoggedIn = FirebaseAuth.getInstance().currentUser != null
-    val startDestination = if (isLoggedIn) Screen.Home.route else "login"
 
     val bottomNavItems = listOf(
         Screen.Home,

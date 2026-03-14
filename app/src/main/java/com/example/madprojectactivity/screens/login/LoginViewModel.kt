@@ -1,21 +1,21 @@
 package com.example.madprojectactivity.screens.login
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
+import com.example.madprojectactivity.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
-class LoginViewModel : ViewModel() {
+class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val userRepository = UserRepository(application)
 
     private val _uiState = MutableStateFlow(
         LoginUiState(
-            isLoggedIn = auth.currentUser != null
+            isLoggedIn = userRepository.isLoggedIn
         )
     )
     val uiState: StateFlow<LoginUiState> = _uiState
@@ -52,7 +52,7 @@ class LoginViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                auth.signInWithEmailAndPassword(email, password).await()
+                userRepository.signIn(email, password)
                 _uiState.update { it.copy(isLoading = false, isLoggedIn = true) }
             } catch (e: Exception) {
                 _uiState.update {
@@ -78,7 +78,7 @@ class LoginViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                auth.createUserWithEmailAndPassword(email, password).await()
+                userRepository.signUp(email, password)
                 _uiState.update { it.copy(isLoading = false, isLoggedIn = true) }
             } catch (e: Exception) {
                 _uiState.update {
@@ -89,7 +89,7 @@ class LoginViewModel : ViewModel() {
     }
 
     fun logout() {
-        auth.signOut()
+        userRepository.signOut()
         _uiState.value = LoginUiState(isLoggedIn = false)
     }
 }
